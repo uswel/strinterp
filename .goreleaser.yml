@@ -18,7 +18,7 @@ archives:
       - goos: windows
         format: zip
     name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    
+
 checksum:
   name_template: 'checksums.txt'
 
