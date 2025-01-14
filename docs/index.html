@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>strinterp Documentation</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2em;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        pre {
+            background-color: #eee;
+            padding: 1em;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #eee;
+            padding: 0.2em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5em;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>strinterp</h1>
+
+    <p><code>strinterp</code> is a Go library for performing string interpolation, allowing you to embed and format variables directly within strings. It offers a simple and readable syntax inspired by shell scripting and other template languages.</p>
+
+    <h2>Features</h2>
+
+    <ul>
+        <li><strong>Simple variable expansion:</strong> <code>${variable}</code></li>
+        <li><strong>Formatting:</strong> <code>${variable:format}</code>
+            <ul>
+                <li><strong>Integer Formats:</strong>
+                    <ul>
+                        <li><code>d</code>: Decimal (e.g., <code>${age:d}</code>)</li>
+                        <li><code>x</code>: Lowercase hexadecimal (e.g., <code>${id:x}</code>)</li>
+                        <li><code>X</code>: Uppercase hexadecimal (e.g., <code>${id:X}</code>)</li>
+                        <li><code>o</code>: Octal (e.g., <code>${permissions:o}</code>)</li>
+                        <li><code>b</code>: Binary (e.g., <code>${flags:b}</code>)</li>
+                    </ul>
+                </li>
+                <li><strong>Float Formats:</strong>
+                    <ul>
+                        <li><code>f</code>: Fixed-point (e.g., <code>${price:f}</code>)</li>
+                        <li><code>.&lt;precision&gt;f</code>: Fixed-point with specified precision (e.g., <code>${price:.2f}</code>)</li>
+                        <li><code>.&lt;precision&gt;</code>: Fixed-point with specified precision (shorthand for <code>.precisionf</code>) (e.g., <code>${score:.3}</code>)</li>
+                        <li><code>e</code>: Lowercase scientific notation (e.g., <code>${value:e}</code>)</li>
+                        <li><code>E</code>: Uppercase scientific notation (e.g., <code>${value:E}</code>)</li>
+                        <li><code>g</code>: General format (uses <code>e</code> or <code>f</code> depending on magnitude) (e.g., <code>${number:g}</code>)</li>
+                        <li><code>G</code>: General format (uses <code>E</code> or <code>f</code> depending on magnitude) (e.g., <code>${number:G}</code>)</li>
+                    </ul>
+                </li>
+                <li><strong>String Formats:</strong>
+                    <ul>
+                        <li><code>upper</code>: Uppercase (e.g., <code>${city:upper}</code>)</li>
+                        <li><code>lower</code>: Lowercase (e.g., <code>${name:lower}</code>)</li>
+                        <li><code>title</code>: Title case (e.g., <code>${title:title}</code>)</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Escaping:</strong> <code>$$</code> to escape the dollar sign</li>
+        <li><strong>Error handling:</strong>
+            <ul>
+                <li>Returns an error for unclosed variable expansions.</li>
+                <li>Returns an error for undefined variables.</li>
+                <li>Returns an error for invalid or unsupported format specifiers.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>Installation</h2>
+
+    <pre><code>go get github.com/uswel/strinterp
+</code></pre>
+
+    <h2>Usage</h2>
+
+    <pre><code class="language-go">
+package main
+
+import (
+    "fmt"
+
+    "github.com/uswel/strinterp"
+)
+
+func main() {
+    variables := map[string]interface{}{
+        "name":  "Alice",
+        "age":   30,
+        "price": 12.345,
+        "city":  "New York",
+        "id":    255,
+        "score": 0.9876,
+    }
+
+    message, err := strinterp.String("My name is ${name} and I am ${age} years old. The price is ${price:.2f}. $$ is the escape sequence for $. I live in ${city:upper}. ID: ${id:X}, Score: ${score:.3}", variables)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+    fmt.Println(message)
+    // Output: My name is Alice and I am 30 years old. The price is 12.35. $ is the escape sequence for $. I live in NEW YORK. ID: FF, Score: 0.988
+}
+    </code></pre>
+
+    <h2>API Documentation</h2>
+
+    <h3><code>func String(input string, variables map[string]interface{}) (string, error)</code></h3>
+
+    <p>Expands variables within a string using the syntax <code>${var}</code> or <code>${var:format}</code>.</p>
+
+    <p><strong>Parameters:</strong></p>
+
+    <ul>
+        <li><code>input</code>: The string containing variable expansions.</li>
+        <li><code>variables</code>: A map of variable names to their values.</li>
+    </ul>
+
+    <p><strong>Returns:</strong></p>
+
+    <ul>
+        <li>The expanded string with variables replaced by their values.</li>
+        <li>An error if there is an unclosed variable expansion, an undefined variable, or an invalid format specifier.</li>
+    </ul>
+
+    <h3><code>func parseVar(expression string) (name string, format string)</code></h3>
+
+    <p>(Internal function) Extracts the variable name and optional format from the expression.</p>
+
+    <h3><code>func formatValue(value interface{}, format string) (string, error)</code></h3>
+
+    <p>(Internal function) Formats the variable value based on the optional format.</p>
+
+    <h3><code>func formatInt(value int64, format string) (string, error)</code></h3>
+
+    <p>(Internal function) Formats an integer value.</p>
+
+    <h3><code>func formatFloat(value float64, format string) (string, error)</code></h3>
+
+    <p>(Internal function) Formats a float value.</p>
+
+    <h3><code>func formatString(value string, format string) (string, error)</code></h3>
+
+    <p>(Internal function) Formats a string value.</p>
+
+    <h2>Error Handling</h2>
+
+    <p>The <code>String</code> function returns an error in the following cases:</p>
+
+    <ul>
+        <li><strong>Unclosed variable expansion:</strong> If a variable expansion is not properly closed with a <code>}</code>, e.g., <code>${name</code>.</li>
+        <li><strong>Undefined variable:</strong> If a referenced variable is not found in the <code>variables</code> map.</li>
+        <li><strong>Invalid format specifier:</strong> If an unsupported or invalid format specifier is used for a given variable type.</li>
+        <li><strong>Invalid precision:</strong> if the precision provided in the format specifier is not a valid integer.</li>
+    </ul>
+</body>
+</html>

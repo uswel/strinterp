@@ -1,0 +1,43 @@
+name: Update Wiki
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.18'
+
+      - name: Install godoc
+        run: go install golang.org/x/tools/cmd/godoc@latest
+
+      - name: Generate HTML documentation
+        run: |
+          mkdir -p ${{ github.workspace }}.wiki/pkg/
+          godoc -url="github.com/uswel/strinterp" -w ${{ github.workspace }}.wiki/pkg/
+
+      - name: Create Wiki Home Page from README
+        run: cp README.md ${{ github.workspace }}.wiki/Home.md
+
+      - name: Commit and Push Wiki Changes
+        run: |
+          cd ${{ github.workspace }}.wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update Wiki documentation" || echo "No changes to commit"
+          git push origin wiki || echo "No changes to push"
