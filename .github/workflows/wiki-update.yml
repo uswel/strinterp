@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: read, write
   pages: write
   id-token: write
 
@@ -16,28 +16,38 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          path: main
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.22.2'
 
-      - name: Install godoc
-        run: go install golang.org/x/tools/cmd/godoc@latest
+      - name: Checkout Wiki
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: ${{ github.workspace }}/wiki
+
+      - name: Install godoc-static
+        run: go install github.com/steeve/go-gouv/godoc-static@latest
 
       - name: Generate HTML documentation
         run: |
-          mkdir -p ${{ github.workspace }}.wiki/pkg/
-          godoc -url="github.com/uswel/strinterp" -w ${{ github.workspace }}.wiki/pkg/
+          cd main
+          go mod edit -module=github.com/uswel/strinterp
+          export PATH=$PATH:$(go env GOPATH)/bin
+          godoc-static -site-root . -site-output ${{ github.workspace }}/wiki/pkg -site-template ""
 
       - name: Create Wiki Home Page from README
-        run: cp README.md ${{ github.workspace }}.wiki/Home.md
+        run: cp main/README.md ${{ github.workspace }}/wiki/Home.md
 
       - name: Commit and Push Wiki Changes
         run: |
-          cd ${{ github.workspace }}.wiki
+          cd ${{ github.workspace }}/wiki
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Update Wiki documentation" || echo "No changes to commit"
-          git push origin wiki || echo "No changes to push"
+          git push origin main || echo "No changes to push"

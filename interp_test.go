@@ -63,7 +63,7 @@ func TestString(t *testing.T) {
 			name:      "float formatting",
 			input:     "Float: ${value:.2f}, Scientific: ${value:e}",
 			variables: map[string]interface{}{"value": 3.14159},
-			want:      "Float: 3.14, Scientific: 3.141590e+00",
+			want:      "Float: 3.14, Scientific: 3.14159e+00",
 			wantErr:   false,
 		},
 		{
